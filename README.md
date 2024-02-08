@@ -1,2 +1,2 @@
-# BlackScholes
-For the master's course 'Computational Finance' at the University of Amsterdam. Assignment 1: Black-Scholes and the binomial tree.
+# Black Scholes and the Binomial Tree
+A repository for Assignment 1 of the master's course 'Computational Finance' by the University of Amsterdam.
