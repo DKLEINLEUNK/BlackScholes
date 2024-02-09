@@ -36,7 +36,7 @@ def buildTree(S, vol , T, N):
     return matrix
 
 
-def valueOptionMatrix(tree , T, r , K, vol):
+def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
 
     N = tree.shape[1] - 1 #Getting N from the number of columns - 1
 
@@ -68,11 +68,24 @@ def valueOptionMatrix(tree , T, r , K, vol):
 
             payoff[i,j] = np.exp(-r*dt)*(p*up + (1-p)*down)
     
-
-    return payoff
-
-
-# Iterate over the lower triangle
-
+    if return_tree:
+        return payoff
+    
+    return payoff[0][0]
 
 
+if __name__ == '__main__':
+
+    ### Example Usage ###
+    T = 1        # maturity (years)
+    K = 99       # strike price at t = T
+    r = 0.06     # interest rate
+    S_0 = 100    # stock price at t = 0
+    sigma = 0.2  # volatility
+    N = 50       # timesteps
+
+    tree = buildTree(S_0, sigma, T, N)
+    payoff = valueOptionBinomial(tree, T, r, K, sigma, return_tree=False)
+
+    # approximate_value = payoff[0][0]
+    print(f'Value of the option: {payoff:.2f}')
