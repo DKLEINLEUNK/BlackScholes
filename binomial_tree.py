@@ -36,6 +36,40 @@ def buildTree(S, vol , T, N):
     return matrix
 
 
+def valueOptionMatrix(tree , T, r , K, vol):
+
+    N = tree.shape[1] - 1 #Getting N from the number of columns - 1
+
+    dt = T / N
+    u = np.exp(vol*np.sqrt(dt)) #According to formula derived in appendix
+    d = np.exp(-vol*np.sqrt(dt)) 
+    p = (np.exp(r*dt) - d)/(u-d) #According to formula derived in appendix
+    columns = tree.shape[1] 
+    rows = tree.shape[0]
+    
+    # Walk backward , we start in last row of the matrix
+    # Add the payoff function in the last row for c in np.arange(columns):
+
+    payoff = np.zeros_like(tree)  # ASK TA IF THIS IS OKAY
+
+    for c in np.arange(columns): #Loop over columns
+
+        S = tree[rows - 1, c] #Getting the first stock price in the last row
+        payoff[rows - 1, c] = np.max(0, S-K)
+        
+        #TODO #Calculating the payoff of the option using S
+    
+    # For all other rows , we need to combine from previous rows 
+    # We walk backwards , from the last row to the first row
+    for i in np.arange(rows - 1)[::-1]: #Loop over the row in reverse order
+        for j in np.arange(i+1): # Loop over columns 
+            down = payoff[i+1, j]
+            up = payoff[i+1,j+1]
+
+            payoff[i,j] = np.exp(-r*dt)(p*up + (1-p)*down)
+    
+
+    return payoff
 
 
 # Iterate over the lower triangle
