@@ -13,20 +13,28 @@ def buildTree(S, vol , T, N):
 
     # Iterate over the lower triangle
 
-    for i in np.arange(N + 1): # iterate over rows
+    for i_row in np.arange(N + 1): # iterate over rows
 
-        for j in np.arange(i + 1): # iterate over columns
-            
-            matrix[i,j] = S*np.power(u,j)*np.power(d,i)
 
-            
-            
-            print("")
+        for j_col in np.arange(i_row + 1): # iterate over columns
 
+            num_up_moves = j_col
+            num_down_moves = i_row - j_col
+            
+            #TODO: Recombine down and up movements
+
+            if(i_row - j_col < 0):
+                
+                matrix[i_row,j_col] = 0
+            else:
+                 matrix[i_row,j_col] = S*np.power(u, num_up_moves)*np.power(d, num_down_moves)
+         
+            
             # Hint: express each cell as a combination of up
             # and down moves matrix[i, j]=0#TODO
     
     return matrix
+
 
 
 
