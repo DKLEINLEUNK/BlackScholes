@@ -55,7 +55,7 @@ def valueOptionMatrix(tree , T, r , K, vol):
     for c in np.arange(columns): #Loop over columns
 
         S = tree[rows - 1, c] #Getting the first stock price in the last row
-        payoff[rows - 1, c] = np.max(0, S-K)
+        payoff[rows - 1, c] = max(0, S-K)
         
         #TODO #Calculating the payoff of the option using S
     
@@ -66,7 +66,7 @@ def valueOptionMatrix(tree , T, r , K, vol):
             down = payoff[i+1, j]
             up = payoff[i+1,j+1]
 
-            payoff[i,j] = np.exp(-r*dt)(p*up + (1-p)*down)
+            payoff[i,j] = np.exp(-r*dt)*(p*up + (1-p)*down)
     
 
     return payoff
