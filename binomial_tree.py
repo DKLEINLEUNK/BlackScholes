@@ -99,29 +99,29 @@ if __name__ == '__main__':
 
     ### Example Usage ###
     T = 1        # maturity (years)
-    K = 99       # strike price at t = T
+    K = 98       # strike price at t = T
     r = 0.06     # interest rate
     S_0 = 100    # stock price at t = 0
     sigma = 0.2  # volatility
-    N = 5_000    # timesteps
+    N = 10_000    # timesteps
 
-    import time
-    start = time.time()
-    tree = buildTree(S_0, sigma, T, N)
-    end = time.time()
-
-    print('')
-    print('Runtimes')
-    print('--------')
-    print(f'buildTree(): {end-start:.3f} seconds')
-    start = time.time()    
-    tree2 = buildTreeFaster(S_0, sigma, T, N)
-    end = time.time()
-    print(f'buildTreeFaster():  {end-start:.3f}  seconds')
-    print('Trees identical?: ', np.allclose(tree, tree2))
-    print('N = ', N)
-    print('')
-    # payoff = valueOptionBinomial(tree, T, r, K, sigma, return_tree=False)
-
-    # approximate_value = payoff[0][0]
-    # print(f'Value of the option: {payoff:.2f}')
+    # import time
+    # start = time.time()
+    # tree = buildTree(S_0, sigma, T, N)
+    # print(tree)
+    # end = time.time()
+    # print('')
+    # print('Runtimes')
+    # print('--------')
+    # print(f'buildTree(): {end-start:.3f} seconds')
+    # start = time.time()    
+    tree = buildTreeFaster(S_0, sigma, T, N)
+    # end = time.time()
+    # print(f'buildTreeFaster():  {end-start:.3f}  seconds')
+    # print('Trees identical?: ', np.allclose(tree, tree2))
+    # print('N = ', N)
+    # print('')
+    payoff = valueOptionBinomial(tree, T, r, K, sigma, return_tree=True)
+    # print(payoff)
+    approximate_value = payoff[0][0]
+    print(f'Value of the option: {approximate_value:.2f}')
