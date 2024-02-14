@@ -36,6 +36,27 @@ def buildTree(S, vol , T, N):
     return matrix
 
 
+def buildTreeFaster(S, vol , T, N): 
+    dt = T / N
+    u = np.exp(vol*np.sqrt(dt)) #According to formula derived in appendix
+    d = np.exp(-vol*np.sqrt(dt)) 
+    
+    num_up_moves = np.concatenate([np.zeros(N), np.arange(N + 1)])
+    num_down_moves = num_up_moves[::-1]
+    
+    result = S*np.power(u, num_up_moves)*np.power(d, num_down_moves)
+    
+    # This code isn't readable, but it's faster than the previous implementation by a lot
+    # Take my word for it, I'm a scientist
+    A = np.zeros((N+1,N+1))
+    for i in np.arange(0, result.shape[0], 2):
+        i_div = int(i/2)
+        i_end = i+(N+1)-i_div    
+        A[i_div:, i_div] = result[i:i_end][::-1]
+    
+    return A
+
+
 def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
 
     N = tree.shape[1] - 1 #Getting N from the number of columns - 1
@@ -92,14 +113,29 @@ if __name__ == '__main__':
 
     ### Example Usage ###
     T = 1        # maturity (years)
-    K = 99       # strike price at t = T
+    K = 98       # strike price at t = T
     r = 0.06     # interest rate
     S_0 = 100    # stock price at t = 0
     sigma = 0.2  # volatility
-    N = 50       # timesteps
+    N = 10_000    # timesteps
 
-    tree = buildTree(S_0, sigma, T, N)
-    payoff = valueOptionBinomial(tree, T, r, K, sigma, return_tree=False)
-
-    # approximate_value = payoff[0][0]
-    print(f'Value of the option: {payoff:.2f}')
+    # import time
+    # start = time.time()
+    # tree = buildTree(S_0, sigma, T, N)
+    # print(tree)
+    # end = time.time()
+    # print('')
+    # print('Runtimes')
+    # print('--------')
+    # print(f'buildTree(): {end-start:.3f} seconds')
+    # start = time.time()    
+    tree = buildTreeFaster(S_0, sigma, T, N)
+    # end = time.time()
+    # print(f'buildTreeFaster():  {end-start:.3f}  seconds')
+    # print('Trees identical?: ', np.allclose(tree, tree2))
+    # print('N = ', N)
+    # print('')
+    payoff = valueOptionBinomial(tree, T, r, K, sigma, return_tree=True)
+    # print(payoff)
+    approximate_value = payoff[0][0]
+    print(f'Value of the option: {approximate_value:.2f}')
