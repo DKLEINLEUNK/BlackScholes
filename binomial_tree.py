@@ -74,6 +74,20 @@ def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
     return payoff[0][0]
 
 
+def compute_hedge_parameter_binomial(fu, fd,S_0,u,d):
+
+    delta = (fu-fd)/(S_0*u - S_0*d)
+
+    return delta
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
 
     ### Example Usage ###

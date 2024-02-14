@@ -30,6 +30,18 @@ def valueOptionBlackScholes(S_t, K, r, vol, tau):
     return S_t*N_d1 - np.exp(-r*tau)*K*N_d2
 
 
+def compute_hedge_parameter_black_scholes(S_t, K, r, vol, tau):
+
+    d1 = (np.log(S_t/K) + (r + (vol**2)/2)*tau) / (vol*np.sqrt(tau))
+    N_d1 = si.norm.cdf(d1)
+
+    return N_d1
+
+
+
+
+
+
 if __name__ == '__main__':
 
     ### Example Usage ###
