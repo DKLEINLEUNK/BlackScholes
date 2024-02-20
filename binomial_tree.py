@@ -74,8 +74,8 @@ def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
     payoff = np.zeros_like(tree)  # ASK TA IF THIS IS OKAY
 
     for c in np.arange(columns): #Loop over columns
-
-        S = tree[rows - 1, c] #Getting the first stock price in the last row
+        
+        S = tree[rows - 1, c] #Getting the stock prices in the last row
         payoff[rows - 1, c] = max(0, S-K)
         
         #TODO #Calculating the payoff of the option using S
@@ -84,7 +84,7 @@ def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
     # We walk backwards , from the last row to the first row
     for i in np.arange(rows - 1)[::-1]: #Loop over the row in reverse order
         for j in np.arange(i+1): # Loop over columns 
-            down = payoff[i+1, j]
+            down = payoff[i+1, j] #Getting the up and down values at the nodes in the row in the next period
             up = payoff[i+1,j+1]
 
             payoff[i,j] = np.exp(-r*dt)*(p*up + (1-p)*down)
@@ -94,6 +94,50 @@ def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
     
     return payoff[0][0]
 
+
+def valueUSOptionBinomial(tree , T, r , K, vol, return_tree=False):
+
+    '''Values an American option'''
+
+    N = tree.shape[1] - 1 #Getting N from the number of columns - 1
+
+    dt = T / N
+    u = np.exp(vol*np.sqrt(dt)) #According to formula derived in appendix
+    d = np.exp(-vol*np.sqrt(dt)) 
+    p = (np.exp(r*dt) - d)/(u-d) #According to formula derived in appendix
+    columns = tree.shape[1] 
+    rows = tree.shape[0]
+    
+    # Walk backward , we start in last row of the matrix
+    # Add the payoff function in the last row for c in np.arange(columns):
+
+    payoff = np.zeros_like(tree)
+
+
+    #Calculate the intrinsic value of the option at every node
+    for i in np.arange(rows - 1)[::-1]: #Loop over the row in reverse order
+        for c in np.arange(columns): #Loop over columns
+            S = tree[i, c] #Getting the stock prices at every node in row i column c
+            Intrinsic_value =  max(0, S-K)
+            payoff[i, c] = Intrinsic_value #Append Intrinsic value to payoff array
+        
+        #TODO #Calculating the payoff of the option using S
+    
+    # For all other rows , we need to combine from previous rows 
+    # We walk backwards , from the last row to the first row
+    for i in np.arange(rows - 1)[::-1]: #Loop over the row in reverse order
+        for j in np.arange(i+1): # Loop over columns 
+            down = payoff[i+1, j] #Getting the up and down values at the nodes in the row in the next period
+            up = payoff[i+1,j+1]
+            
+            discounted_payoff = np.exp(-r*dt)*(p*up + (1-p)*down)
+            Intrinsic_value = payoff[i,j] #Get the current intrinsic value at the node in row i and column j
+            payoff[i,j] = max(Intrinsic_value,discounted_payoff) #Set the payoff at that node equal to the maximum of the discounted up and down values form the next period and the current intrinsic value
+    
+    if return_tree:
+        return payoff
+    
+    return payoff[0][0]
 
 def compute_hedge_parameter_binomial(fu, fd,S_0,u,d):
 
