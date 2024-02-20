@@ -38,6 +38,81 @@ def compute_hedge_parameter_black_scholes(S_t, K, r, vol, tau):
     return N_d1
 
 
+def generate_stock_path(T,M,S_0,r,vol):
+
+    '''
+    Description
+    -----------
+    Generates a discrete time stock path using Euler's method 
+    using the Black-Scholes formula.
+
+    Parameters
+    ----------
+    `T` : int
+        Time till expiration.
+    `M` : int
+        Number of time steps.
+    `S_0` : float
+        Stock price today.
+    `r` : float
+        Risk free rate.
+    `vol` : float
+        Stock volatility.
+    '''
+
+    time_steps = np.arange(0,M,1)
+
+    dt = T/(len(time_steps)) #Length of time interval
+
+    S_m = S_0 #Initialise starting stock price
+
+    stock_prices = [S_m] #A list to store the whole stock path, starting with the initial price of the stock
+
+    for m in range (1,len(time_steps)): #For each time step
+        
+        Zm = np.random.normal(0,1) #Random number to be used for weiner process
+
+        S_new = S_m + (r*S_m*dt) + (vol*S_m*np.sqrt(dt)*Zm)
+
+        stock_prices.append(S_new)
+
+        S_m = S_new #Set s_m to the new current value of the stock
+
+
+    return stock_prices, time_steps
+
+
+def delta_hedge_simulation(stock_prices,num_intervals):
+     
+    
+        '''
+        Description
+        -----------
+        
+        Determines the P&L of a short European call hedged with delta hedging
+
+        Parameters
+        ----------
+        `stock_prices` : int
+            Time till expiration.
+        `M` : int
+            Number of time steps.
+        `S_0` : float
+            Stock price today.
+        `r` : float
+            Risk free rate.
+        `vol` : float
+            Stock volatility.
+        '''
+
+        extracted_stock_prices = [stock_prices[i] for i in range(0,len(stock_prices),num_intervals)] #Extracting the stock prices at indexes corresponding to number of intervals
+        
+             
+        return extracted_stock_prices
+    
+
+       
+
 
 
 
