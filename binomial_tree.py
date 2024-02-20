@@ -57,21 +57,18 @@ def buildTreeFaster(S, vol , T, N):
     return A
 
 
-def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
+def valueOptionBinomial(tree, T, r , K, vol, return_tree=False):
 
-    N = tree.shape[1] - 1 #Getting N from the number of columns - 1
+    N = tree.shape[1] - 1  # finds N from the number of columns - 1
 
     dt = T / N
-    u = np.exp(vol*np.sqrt(dt)) #According to formula derived in appendix
+    u = np.exp(vol*np.sqrt(dt))
     d = np.exp(-vol*np.sqrt(dt)) 
-    p = (np.exp(r*dt) - d)/(u-d) #According to formula derived in appendix
+    p = (np.exp(r*dt) - d)/(u-d)
     columns = tree.shape[1] 
     rows = tree.shape[0]
     
-    # Walk backward , we start in last row of the matrix
-    # Add the payoff function in the last row for c in np.arange(columns):
-
-    payoff = np.zeros_like(tree)  # ASK TA IF THIS IS OKAY
+    payoff = np.zeros_like(tree)
 
     for c in np.arange(columns): #Loop over columns
         
@@ -86,7 +83,6 @@ def valueOptionBinomial(tree , T, r , K, vol, return_tree=False):
         for j in np.arange(i+1): # Loop over columns 
             down = payoff[i+1, j] #Getting the up and down values at the nodes in the row in the next period
             up = payoff[i+1,j+1]
-
             payoff[i,j] = np.exp(-r*dt)*(p*up + (1-p)*down)
     
     if return_tree:
@@ -146,13 +142,6 @@ def compute_hedge_parameter_binomial(fu, fd,S_0,u,d):
     return delta
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
 
     ### Example Usage ###
@@ -161,25 +150,30 @@ if __name__ == '__main__':
     r = 0.06     # interest rate
     S_0 = 100    # stock price at t = 0
     sigma = 0.2  # volatility
-    N = 10_000    # timesteps
+    N = 5        # timesteps
 
-    # import time
-    # start = time.time()
-    # tree = buildTree(S_0, sigma, T, N)
-    # print(tree)
-    # end = time.time()
-    # print('')
-    # print('Runtimes')
-    # print('--------')
-    # print(f'buildTree(): {end-start:.3f} seconds')
-    # start = time.time()    
-    tree = buildTreeFaster(S_0, sigma, T, N)
-    # end = time.time()
-    # print(f'buildTreeFaster():  {end-start:.3f}  seconds')
-    # print('Trees identical?: ', np.allclose(tree, tree2))
-    # print('N = ', N)
-    # print('')
-    payoff = valueOptionBinomial(tree, T, r, K, sigma, return_tree=True)
-    # print(payoff)
-    approximate_value = payoff[0][0]
-    print(f'Value of the option: {approximate_value:.2f}')
+    tree = buildTree(S_0, sigma, T, 3)
+    payoff = valueOptionBinomial(
+        tree, 
+        T, 
+        r, 
+        K, 
+        sigma, 
+        return_tree=True
+    )
+
+    treeUS = buildTree(S_0, sigma, T, 3)
+    payoffUS = valueUSOptionBinomial(
+        treeUS, 
+        T, 
+        r, 
+        K, 
+        sigma, 
+        exercise_timestep=3, 
+        return_tree=True
+    )
+    
+    print(payoff)
+    print(payoffUS)
+    # approximate_value = payoff[0][0]
+    # print(f'Value of the option: {payoff:.2f}')
