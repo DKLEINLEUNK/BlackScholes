@@ -105,7 +105,10 @@ def delta_hedge_simulation(stock_prices,num_intervals):
             Stock volatility.
         '''
 
-        extracted_stock_prices = [stock_prices[i] for i in range(0,len(stock_prices),num_intervals)] #Extracting the stock prices at indexes corresponding to number of intervals
+
+        step = len(stock_prices)//num_intervals #// Ensures rounding to whole number
+
+        extracted_stock_prices = [stock_prices[i] for i in range(0,len(stock_prices),step)] #Extracting the stock prices at indexes corresponding to number of intervals
         
              
         return extracted_stock_prices
