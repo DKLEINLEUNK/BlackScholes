@@ -82,9 +82,7 @@ def generate_stock_path(T,M,S_0,r,vol):
     return stock_prices, time_steps
 
 
-def delta_hedge_simulation(stock_prices,num_intervals):
-     
-    
+def delta_hedge_simulation(stock_prices, num_intervals):
         '''
         Description
         -----------
@@ -104,21 +102,24 @@ def delta_hedge_simulation(stock_prices,num_intervals):
         `vol` : float
             Stock volatility.
         '''
+        hedge_dates = np.floor(np.linspace(0, len(stock_prices) - 1, num_intervals))[:-1]
+        extracted_stock_prices = [stock_prices[int(i)] for i in hedge_dates] #Extracting the stock prices at indexes corresponding to number of intervals
 
+        # TODO remove later
+        T = 1        # maturity (years)
+        K = 99       # strike price at t = T
+        r = 0.06     # interest rate
+        sigma = 0.2  # volatility
 
-        step = len(stock_prices)//num_intervals #// Ensures rounding to whole number
+        hedge_ratios = []
 
-        extracted_stock_prices = [stock_prices[i] for i in range(0,len(stock_prices),step)] #Extracting the stock prices at indexes corresponding to number of intervals
-        
-             
-        return extracted_stock_prices
+        for S in extracted_stock_prices:
+
+            hedge_ratio = compute_hedge_parameter_black_scholes(S, K, r, sigma, T)
+            hedge_ratios.append(hedge_ratio)
+
+        return hedge_ratios
     
-
-       
-
-
-
-
 
 if __name__ == '__main__':
 
@@ -128,8 +129,13 @@ if __name__ == '__main__':
     r = 0.06     # interest rate
     S_0 = 100    # stock price at t = 0
     sigma = 0.2  # volatility
-    N = 50       # timesteps
+    N = 50     # timesteps
     
     value = valueOptionBlackScholes(S_0, K, r, sigma, T)
     print(f'Value of the option: {value:.2f}')
+
+
+    stock_prices, time_steps = generate_stock_path(T,N,S_0,r,sigma)
+    print(delta_hedge_simulation(stock_prices,5))
+
     
