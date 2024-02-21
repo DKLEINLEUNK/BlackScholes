@@ -52,7 +52,7 @@ class BinomialTreeValuation:
         self.tree = A
 
 
-    def value_option(self, r, K, call_put, option_type, return_tree=False):
+    def value_option(self, r, K, call_put, option_type, as_tree=False):
         '''
         Description
         -----------
@@ -68,14 +68,14 @@ class BinomialTreeValuation:
             'Call' or 'Put' option.
         `option_type` : str
             'EU' or 'US' option.
-        `return_tree` : bool
-            If True, returns the binomial tree.
+        `as_tree` : bool
+            If True, returns the binomial tree and corresponding hedge parameters u & d.
         '''
         self.r = r
         self.K = K
         self.call_put = call_put
         self.option_type = option_type
-        self.return_tree = return_tree
+        self.return_tree = as_tree
 
         if self.option_type == 'EU':
             return self.value_option_EU()
@@ -103,7 +103,7 @@ class BinomialTreeValuation:
                 payoff[i,j] = np.exp(-self.r * self.dt)*(p * up + (1-p) * down)
         
         if self.return_tree:
-            return payoff
+            return payoff, self.u, self.d
         
         return payoff[0][0]
 
@@ -148,10 +148,8 @@ class BinomialTreeValuation:
             return max(self.K - S, 0)
         
 
-def compute_hedge_parameter_binomial(fu, fd,S_0,u,d):
-
-    delta = (fu-fd)/(S_0*u - S_0*d)
-
+def hedge_parameter_binomial(fu, fd, S_0, u, d):
+    delta = (fu-fd) / (S_0*u - S_0*d)
     return delta
 
 

@@ -2,7 +2,7 @@ import numpy as np
 import scipy.stats as si
 
 
-def valueOptionBlackScholes(S_t, K, r, vol, tau):
+def value_option_black_scholes(S_t, K, r, vol, tau):
     '''
     Description
     -----------
@@ -30,8 +30,25 @@ def valueOptionBlackScholes(S_t, K, r, vol, tau):
     return S_t*N_d1 - np.exp(-r*tau)*K*N_d2
 
 
-def compute_hedge_parameter_black_scholes(S_t, K, r, vol, tau):
-
+def hedge_parameter_black_scholes(S_t, K, r, vol, tau):
+    '''
+    Description
+    -----------
+    Calculates the delta hedge parameter for a European call option.
+    
+    Parameters
+    ----------
+    `S_t` : float
+        Current stock price at t.
+    `K` : float
+        Strike price.
+    `r` : float
+        Risk-free interest rate.
+    `vol` : float
+        Volatility.
+    `tau` : float
+        Time to expiration, tau = T - t.
+    '''
     d1 = (np.log(S_t/K) + (r + (vol**2)/2)*tau) / (vol*np.sqrt(tau))
     N_d1 = si.norm.cdf(d1)
 
