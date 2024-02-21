@@ -73,7 +73,7 @@ def valueOptionBinomial(tree, T, r , K, vol, return_tree=False):
     for c in np.arange(columns): #Loop over columns
         
         S = tree[rows - 1, c] #Getting the stock prices in the last row
-        payoff[rows - 1, c] = max(0, S-K)
+        payoff[rows - 1, c] = max(0, K-S)
         
         #TODO #Calculating the payoff of the option using S
     
@@ -84,6 +84,37 @@ def valueOptionBinomial(tree, T, r , K, vol, return_tree=False):
             down = payoff[i+1, j] #Getting the up and down values at the nodes in the row in the next period
             up = payoff[i+1,j+1]
             payoff[i,j] = np.exp(-r*dt)*(p*up + (1-p)*down)
+    
+    if return_tree:
+        return payoff
+    
+    return payoff[0][0]
+
+
+def trying_to_get_the_right_values_for_US(tree, T, r , K, vol, return_tree=False):
+
+    N = tree.shape[1] - 1  # finds N from the number of columns - 1
+
+    dt = T / N
+    u = np.exp(vol*np.sqrt(dt))
+    d = np.exp(-vol*np.sqrt(dt)) 
+    p = (np.exp(r*dt) - d)/(u-d)
+    columns = tree.shape[1] 
+    rows = tree.shape[0]
+    
+    payoff = np.zeros_like(tree)
+
+    for c in np.arange(columns):  # loops over columns
+        S = tree[rows - 1, c]
+        payoff[rows - 1, c] = max(0, K-S)
+        
+    for i in np.arange(rows - 1)[::-1]:  # loops over the rows in reverse order
+        for j in np.arange(i+1):  # loops over columns 
+            down = payoff[i+1, j]
+            up = payoff[i+1,j+1]
+            continuation = np.exp(-r*dt)*(p*up + (1-p)*down)
+            intrinsic = max(0, K-tree[i,j])
+            payoff[i,j] = max(continuation, intrinsic)
     
     if return_tree:
         return payoff
@@ -152,25 +183,24 @@ if __name__ == '__main__':
     sigma = 0.2  # volatility
     N = 5        # timesteps
 
-    tree = buildTree(S_0, sigma, T, 3)
+    tree = buildTree(S_0, sigma, T, N)
     payoff = valueOptionBinomial(
         tree, 
         T, 
         r, 
         K, 
         sigma, 
-        return_tree=True
+        return_tree=False
     )
 
-    treeUS = buildTree(S_0, sigma, T, 3)
-    payoffUS = valueUSOptionBinomial(
+    treeUS = buildTree(S_0, sigma, T, N)
+    payoffUS = trying_to_get_the_right_values_for_US(
         treeUS, 
         T, 
         r, 
         K, 
-        sigma, 
-        exercise_timestep=3, 
-        return_tree=True
+        sigma,
+        return_tree=False
     )
     
     print(payoff)

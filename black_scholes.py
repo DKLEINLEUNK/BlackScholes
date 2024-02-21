@@ -40,7 +40,7 @@ def compute_hedge_parameter_black_scholes(S_t, K, r, vol, tau):
 
 class BlackScholesSimulation:
     
-    def __init__(self, S_0, K, r, vol, T, M):
+    def __init__(self, S_0, K, r, M, stock_volatility, delta_volatility, T=1):
         '''
         Description
         -----------
@@ -54,17 +54,20 @@ class BlackScholesSimulation:
             Strike price.
         `r` : float
             Risk-free interest rate.
-        `vol` : float
-            Volatility.
-        `T` : float
-            Time to expiration.
         `M` : int
             Number of time steps.
+        `stock_volatility` : float
+            Constant for the volatility of the stock price dynamics.
+        `delta_volatility` : float
+            Constant for the volatility of the delta hedge parameter.
+        `T` : float
+            Time to expiration.
         '''
         self.S_0 = S_0
         self.K = K
         self.r = r
-        self.vol = vol
+        self.stock_volatility = stock_volatility
+        self.delta_volatility = delta_volatility
         self.T = T
         self.M = M
 
@@ -93,7 +96,7 @@ class BlackScholesSimulation:
             
             Zm = np.random.normal(0,1) #Random number to be used for weiner process
 
-            S_new = S_m + (self.r * S_m * dt) + (self.vol * S_m * np.sqrt(dt) * Zm)
+            S_new = S_m + (self.r * S_m * dt) + (self.stock_volatility * S_m * np.sqrt(dt) * Zm)
 
             stock_prices.append(S_new)
 
@@ -102,6 +105,15 @@ class BlackScholesSimulation:
         self.stock_prices = stock_prices
         self.time_steps = time_steps
 
+
+    def compute_profit_loss(self, n_hedges):
+        '''
+        Description
+        -----------
+        Calculates the profit/loss of the replicating portfolio.
+        '''
+        return self.rebalance_portfolio(n_hedges) - self.compute_payoff()
+    
 
     def rebalance_portfolio(self, n_hedges):
         '''
@@ -113,6 +125,11 @@ class BlackScholesSimulation:
         ----------
         `n_hedges` : int
             Number of hedges to be performed, e.g. `5` for quarterly, `53` for weekly, `366` for daily.
+        
+        Returns
+        -------
+        `float`
+            Value of the replicated portfolio at t=T.
         '''
         self.hedge_deltas(n_hedges)  # quarterly hedging
         
@@ -129,19 +146,20 @@ class BlackScholesSimulation:
         -----------
         Calculates the option premium value at t=T of the European call option.
         '''
-        d1 = (np.log(self.S_0 / self.K) + (self.r + (self.vol**2) / 2) * self.T) / (self.vol * np.sqrt(self.T))
+        d1 = (np.log(self.S_0 / self.K) + (self.r + (self.delta_volatility**2) / 2) * self.T) / (self.delta_volatility * np.sqrt(self.T))
         N_d1 = si.norm.cdf(d1)
         
-        d2 = d1 - self.vol * np.sqrt(self.T)
+        d2 = d1 - self.delta_volatility * np.sqrt(self.T)
         N_d2 = si.norm.cdf(d2)
 
-        C_0 = self.S_0 * N_d1 - np.exp(-r * self.T) * K * N_d2
+        C_0 = self.S_0 * N_d1 - np.exp(-self.r * self.T) * self.K * N_d2
 
         # print(f"Value of the option at t=0 is {C_0}")
         
         C_1 = C_0 * np.exp(self.r * self.T)  # value of the option at t=T
 
         return C_1
+
 
     def hedge_deltas(self, n_hedges):
         '''
@@ -170,7 +188,7 @@ class BlackScholesSimulation:
             S_t = self.hedge_stock_prices[i]        
             tau = ( (self.M - 1) - self.hedge_dates[i] ) * self.dt  # time to expiration
         
-            d1 = (np.log(S_t / self.K) + (self.r + (self.vol**2) / 2) * tau) / (self.vol * np.sqrt(tau))
+            d1 = (np.log(S_t / self.K) + (self.r + (self.delta_volatility**2) / 2) * tau) / (self.delta_volatility * np.sqrt(tau))
             N_d1 = si.norm.cdf(d1)
             
             self.hedge_taus.append(tau)
@@ -211,19 +229,86 @@ class BlackScholesSimulation:
         '''
         return self.hedge_delta_params[-1] * self.stock_prices[-1]  # last delta parameter before T * final stock price from simulation 
     
+    
+    def compute_payoff(self):
+        '''
+        Description
+        -----------
+        Calculates the payoff of the European call option at t=T.
+        '''
+        return max((self.stock_prices[-1] - self.K), 0)
+    
+
+def run_hedge_simulations(n_simulations, S_0, K, r, stock_volatility, delta_volatility, T, N, n_hedges):
+    '''
+    Description
+    -----------
+    Runs multiple simulations of the Black-Scholes model to calculate the profit/loss of the replicating portfolio.
+    
+    Parameters
+    ----------
+    `n_simulations` : int
+        Number of simulations to be run.
+    `S_0` : float
+        Stock price today.
+    `K` : float
+        Strike price.
+    `r` : float
+        Risk-free interest rate.
+    `stock_volatility` : float
+        Volatility.
+    `delta_volatility` : float
+        Volatility of the delta hedge parameter.
+    `T` : float
+        Time to expiration.
+    `N` : int
+        Number of time steps.
+    `n_hedges` : int
+        Number of hedges to be performed, e.g. `5` for quarterly, `53` for weekly, `366` for daily.
+    
+    Returns
+    -------
+    `list`
+        List of profit/loss values for each simulation.
+    '''
+    profits_losses = []
+
+    for _ in range(n_simulations):
+        
+        bs_sim = BlackScholesSimulation(
+            S_0=S_0, 
+            K=K, 
+            r=r,
+            M=N,
+            stock_volatility=stock_volatility, 
+            delta_volatility=delta_volatility,
+            T=T
+        )
+        profit_loss = bs_sim.compute_profit_loss(n_hedges)
+        profits_losses.append(profit_loss)
+
+    return profits_losses
+
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
 
     ### Example Usage ###
-    T = 1        # maturity (years)
-    K = 99       # strike price at t = T
-    r = 0.06     # interest rate
-    S_0 = 100    # stock price at t = 0
-    sigma = 0.2  # volatility
-    N = 1000     # timesteps
-    
-    bs_sim = BlackScholesSimulation(S_0, K, r, sigma, T, N)
-    replicated_portfolio = bs_sim.rebalance_portfolio(366)  # weekly hedging
+    profits_losses = run_hedge_simulations(
+        n_simulations=5000,
+        S_0=100,
+        K=99,
+        r=0.06,
+        stock_volatility=0.2,
+        delta_volatility=0.2,
+        T=1,
+        N=1000,
+        n_hedges=53  # weekly hedging
+    )
 
-    print(f"Value of the replicated portfolio at t=T is {replicated_portfolio:.2f}")
-    print(f"Owed to holder at t=T is {max((bs_sim.stock_prices[-1] - K), 0):.2f}")
+    print(f"Mean profit/loss at t=T is {np.mean(profits_losses):.2f}")
+    plt.hist(profits_losses, bins=30, density=True)
+    plt.xlabel('Profit/Loss')
+    plt.ylabel('Density')
+    plt.title('${\\sigma}_{S} < {\\sigma}_{\\triangle}$')
+    plt.show()
