@@ -57,7 +57,7 @@ def buildTreeFaster(S, vol , T, N):
     return A
 
 
-def valueOptionBinomial(tree, T, r , K, vol, return_tree=False):
+def valueOptionBinomial(tree, T, r , K, vol, option_type, return_tree=False):
 
     N = tree.shape[1] - 1  # finds N from the number of columns - 1
 
@@ -73,7 +73,7 @@ def valueOptionBinomial(tree, T, r , K, vol, return_tree=False):
     for c in np.arange(columns): #Loop over columns
         
         S = tree[rows - 1, c] #Getting the stock prices in the last row
-        payoff[rows - 1, c] = max(0, K-S)
+        payoff[rows - 1, c] = compute_payoff(option_type,S,K)
         
         #TODO #Calculating the payoff of the option using S
     
@@ -122,7 +122,19 @@ def trying_to_get_the_right_values_for_US(tree, T, r , K, vol, return_tree=False
     return payoff[0][0]
 
 
-def valueUSOptionBinomial(tree , T, r , K, vol, return_tree=False):
+def compute_payoff(option_type,S,K):
+    '''Computes the payoff of an option depending on if it is a Call or a Put'''
+    if(option_type == "Call"):
+
+        return max(S-K,0)
+    
+    if(option_type == "Put"):
+
+        return max(K-S,0)
+
+
+
+def valueUSOptionBinomial(tree , T, r , K, vol, option_type, return_tree=False):
 
     '''Values an American option'''
 
@@ -145,7 +157,7 @@ def valueUSOptionBinomial(tree , T, r , K, vol, return_tree=False):
     for i in np.arange(rows - 1)[::-1]: #Loop over the row in reverse order
         for c in np.arange(columns): #Loop over columns
             S = tree[i, c] #Getting the stock prices at every node in row i column c
-            Intrinsic_value =  max(0, S-K)
+            Intrinsic_value =  compute_payoff(option_type,S,K)
             payoff[i, c] = Intrinsic_value #Append Intrinsic value to payoff array
         
         #TODO #Calculating the payoff of the option using S
