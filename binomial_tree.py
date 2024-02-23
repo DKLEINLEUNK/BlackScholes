@@ -99,7 +99,7 @@ class BinomialTreeValuation:
         for i in np.arange(rows - 1)[::-1]:  # loops over the row in reverse order
             for j in np.arange(i+1):  # loops over columns 
                 down = payoff[i+1, j]
-                up = payoff[i+1,j+1]
+                up = payoff[i+1, j+1]
                 payoff[i,j] = np.exp(-self.r * self.dt)*(p * up + (1-p) * down)
         
         if self.return_tree:
